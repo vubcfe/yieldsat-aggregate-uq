@@ -1,0 +1,7 @@
+runs/
+outputs/
+__pycache__/
+*.pyc
+*.partial
+*.tmp
+.DS_Store
