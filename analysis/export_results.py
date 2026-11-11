@@ -190,6 +190,23 @@ def main():
                 res[d["seed"]][f"{pr}_{mode}_{d['column'].replace('_', '')}_{nm}"] = acc
     if res:
         add_means(res); write("e45", res, n_pix)
+    # B2 diagnostic (src/e2_trainfit_check.py): fit to training bags and within-field R2, fold 0, seed 0, L1
+    f = os.path.join(A, "e2_trainfit.json")
+    if os.path.exists(f):
+        ms = {}
+        for r in json.load(open(f)):
+            country, crop = r["tag"].split("_", 1)
+            for m in ("B1", "B2", "B2pv"):
+                ms[f"{pair(country, crop)}_{m}"] = clean(r[m])
+        for m in ("B1", "B2", "B2pv"):
+            vs = [v for k, v in ms.items() if k.endswith("_" + m)]
+            ms[f"MIN_{m}"] = {"bag_r2": min(v["bag_r2"] for v in vs)}
+            ms[f"MAX_{m}"] = {"within_r2_train": max(v["within_r2_train"] for v in vs)}
+        write("diag", {0: ms}, n_pix)
+    # example-field figure: number of candidate fields (for the caption)
+    f = os.path.join(A, "fig_examples.npz")
+    if os.path.exists(f):
+        write("fig", {0: {"examples": {"n_candidates": float(np.load(f)["n_candidates"])}}}, n_pix)
     # E6
     res = defaultdict(dict)
     for p in glob.glob(f"{A}/e6/*.json"):

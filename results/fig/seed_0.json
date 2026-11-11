@@ -1,0 +1,9 @@
+{
+ "metrics": {
+  "examples": {
+   "n_candidates": 432.0
+  }
+ },
+ "n_test": 12245234,
+ "seed": 0
+}

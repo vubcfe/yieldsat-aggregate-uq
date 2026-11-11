@@ -67,6 +67,8 @@ def t_e2():
     R, n = load("e2")
     if not n:
         return
+    f = os.path.join(ROOT, "results", "e2ci", "seed_0.json")
+    CI = json.load(open(f))["metrics"] if os.path.exists(f) else {}
     for metric, name in (("r2_within", "e2_within"), ("rho_within", "e2_rho")):
         L = [r"\begin{tabular}{l" + "c" * len(E2M) + "}", r"\toprule",
              "Country, crop & " + " & ".join(f"{lab}" for _, _, lab in E2M) + r" \\", r"\midrule"]
@@ -75,6 +77,12 @@ def t_e2():
             if p == "MEAN5":
                 L.append(r"\midrule")
             L.append(" & ".join([lab] + [cell(R, f"{p}_{mode}_{k}", metric) for k, mode, _ in E2M]) + r" \\")
+            if p.startswith("MEAN") and metric == "r2_within" and CI:
+                ci = []
+                for k, mode, _ in E2M:
+                    v = CI.get(f"{p}_{'B0' if k == 'L0_B0' else k}")
+                    ci.append(r"\scriptsize[" + f"{v['lo']:.2f}, {v['hi']:.2f}]".replace("-", "$-$") if v and mode == "P" else "")
+                L.append(" & ".join([r"\quad\scriptsize 95\,\% CI"] + ci) + r" \\")
         L += [r"\bottomrule", r"\end{tabular}"]
         save(name, L)
     # levels x methods, mean over the 5 pairs with a usable ceiling
@@ -239,7 +247,29 @@ def t_e3():
     save("e3_transfer", L)
 
 
+def t_e2ci():
+    f = os.path.join(ROOT, "results", "e2ci", "seed_0.json")
+    if not os.path.exists(f):
+        return
+    C = json.load(open(f))["metrics"]
+    comps = [("L1_B2pv", "L1_B11", "B2pv $-$ B11"), ("L1_B8", "L1_B11", "B8 $-$ B11"),
+             ("B0", "L1_B2pv", "B0 $-$ B2pv"), ("L2_B2pv", "Lrand_B2pv", "B2pv: farm-year $-$ random"),
+             ("L2_B8", "Lrand_B8", "B8: farm-year $-$ random")]
+    def fmt(v):
+        return (f"{v['d']:.3f} [{v['lo']:.3f}, {v['hi']:.3f}]").replace("-", "$-$")
+    L = [r"\begin{tabular}{l" + "c" * len(comps) + "}", r"\toprule",
+         "Country, crop & " + " & ".join(c[2] for c in comps) + r" \\", r"\midrule"]
+    for p in PAIRS + ["MEAN5", "MEAN9"]:
+        if p == "MEAN5":
+            L.append(r"\midrule")
+        lab = {"MEAN5": r"Mean, 5 pairs", "MEAN9": "Mean, 9 pairs"}.get(p, LABEL.get(p))
+        L.append(" & ".join([lab] + [fmt(C[f"{p}_{a}__vs__{b}"]) if f"{p}_{a}__vs__{b}" in C else "--"
+                                     for a, b, _ in comps]) + r" \\")
+    L += [r"\bottomrule", r"\end{tabular}"]
+    save("e2ci", L)
+
+
 if __name__ == "__main__":
-    for f in (t_e1, t_e2, t_e45, t_e6, t_e3):
+    for f in (t_e1, t_e2, t_e45, t_e6, t_e3, t_e2ci):
         f()
     print("tables:", sorted(os.listdir(GEN)))

@@ -88,7 +88,39 @@ def fig_cov():
     fig.savefig(os.path.join(FIG, "coverage_by_scale.pdf")); plt.close(fig)
 
 
+def fig_examples():
+    """Example fields ($RUNS/fig_examples.npz from src/fig_examples_extract.py; not distributed, it holds yield maps): truth and four maps on
+    the pixel grid, one colour scale per field (2nd-98th percentile of the truth)."""
+    f = os.path.join(os.environ.get("RUNS", os.path.join(ROOT, "runs")), "fig_examples.npz")
+    if not os.path.exists(f):
+        return
+    z = np.load(f)
+    cols = list(z["cols"]); n = len(z["fields"])
+    head = {"y": "Harvester\n(truth)", "B0": "B0\ndense labels", "L1_B2pv": "B2pv\nfield aggregates",
+            "L1_B11": "B11\nfield aggregates", "L1_B1": "B1\nfield aggregates"}
+    order = ["y", "B0", "L1_B2pv", "L1_B11", "L1_B1"]
+    fig, axs = plt.subplots(n, len(order), figsize=(7.0, 1.55 * n + 0.4), squeeze=False)
+    cmap = plt.get_cmap("Greens").copy(); cmap.set_bad("white")
+    for i in range(n):
+        lo, hi = np.nanpercentile(z[f"{i}_y"], [2, 98])
+        for j, c in enumerate(order):
+            ax = axs[i, j]
+            im = ax.imshow(z[f"{i}_{c}"], cmap=cmap, vmin=lo, vmax=hi, interpolation="nearest")
+            ax.set_xticks([]); ax.set_yticks([])
+            for sp in ax.spines.values():
+                sp.set_visible(False)
+            t = head[c] if i == 0 else ""
+            if c != "y":
+                r = z[f"{i}_r2w"][cols.index(c) - 1]
+                t = (t + "\n" if t else "") + f"$R^2_w$ = {r:.2f}"
+            ax.set_title(t, fontsize=7, color=INK)
+        axs[i, 0].set_ylabel(str(z["fields"][i]).capitalize(), fontsize=7, color=INK)
+        cb = fig.colorbar(im, ax=axs[i, :].tolist(), fraction=0.02, pad=0.01)
+        cb.set_label("t ha$^{-1}$", fontsize=7); cb.ax.tick_params(labelsize=6)
+    fig.savefig(os.path.join(FIG, "example_fields.pdf"), bbox_inches="tight"); plt.close(fig)
+
+
 if __name__ == "__main__":
     os.makedirs(FIG, exist_ok=True)
-    fig_curve(); fig_cov()
+    fig_curve(); fig_cov(); fig_examples()
     print(sorted(os.listdir(FIG)))

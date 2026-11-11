@@ -26,6 +26,12 @@ done
 # E2: learning from aggregate labels (needs the E1 block folds)
 $PY -W ignore -I "$S/e2_aggregate.py" "$RUNS/features" "$REC" "$RUNS/e0/bags_l3.csv" "$RUNS/e1/block" "$RUNS/e2" "$SEEDS"
 
+# Diagnostics for E2: per-block statistics for the bootstrap, B2 training fit, example-field figure data
+$PY -I "$S/e2_blockstats.py" "$RUNS/e1/block" "$RUNS/e2" "$REC" "$RUNS/e2_blockstats.csv"
+$PY -W ignore "$S/e2_trainfit_check.py" "$RUNS/features" "$REC" "$RUNS/e0/bags_l3.csv" "$RUNS/e1/block" \
+  "$RUNS/e2_trainfit.json" Argentina_corn,Argentina_soybean,Brazil_soybean
+$PY -W ignore -I "$S/fig_examples_extract.py" "$RUNS/e1/block" "$RUNS/e2" Argentina_soybean 0 "$RUNS/fig_examples.npz"
+
 # E3: label-value curve and transfer between countries
 $PY -W ignore -I "$S/e3_dense_k.py" "$RUNS/features" "$REC" "$RUNS/e3" "$SEEDS"
 
@@ -42,5 +48,6 @@ $PY -W ignore -I "$S/e6_reported.py" "$RUNS/e1/block" "$REC" "$RUNS/e0/fields.cs
 
 # Summaries, tables and figures
 RUNS=$RUNS $PY "$S/../analysis/export_results.py"
+RUNS=$RUNS $PY "$S/../analysis/bootstrap_e2.py"
 $PY "$S/../analysis/make_tables.py"
-$PY "$S/../analysis/make_figures.py"
+RUNS=$RUNS $PY "$S/../analysis/make_figures.py"

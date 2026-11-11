@@ -1,6 +1,6 @@
 # How much is an aggregate yield label worth?
 
-Code for the paper *How much is an aggregate yield label worth? Pixel yield maps and their uncertainty from field, farm and regional statistics, validated against dense harvester data* (Cao Vu Bui, manuscript in preparation).
+Code for the paper *How much is an aggregate yield label worth? Pixel yield maps and their uncertainty from field, farm and regional statistics, validated against dense harvester data* (Cao Vu Bui, Hoang-Anh-Vu Nguyen and Van-Nam Nguyen; manuscript in preparation).
 
 Harvester yield maps from [YieldSAT](https://yieldsat.github.io) serve as dense truth to measure two things:
 
@@ -20,10 +20,14 @@ Harvester yield maps from [YieldSAT](https://yieldsat.github.io) serve as dense 
 | E3 | `src/e3_dense_k.py` | Computes the label-value curve, i.e. skill with dense labels on *k* fields, and the transfer of dense models between countries. |
 | E4/E5 | `src/e45_uq.py` | Calibrates pixel intervals with conformal prediction and aggregates the uncertainty to field and farm-year means under five constructions. Also covers calibration from aggregates only (transfer of κ) and calibration with *k* dense fields. |
 | E6 | `src/e6_reported.py` | Uses farmer-reported yields as the aggregate in mode D. |
+| Checks | `src/e2_blockstats.py` | Writes per-block sufficient statistics of within-field R², the input of the block bootstrap. |
+| Checks | `src/e2_trainfit_check.py` | Re-trains B1, B2 and B2pv on one fold and checks that they fit the training aggregates. |
+| Checks | `src/fig_examples_extract.py` | Selects example fields for the qualitative figure by a fixed rule (pixel grid, no coordinates). |
 
 Scripts in `analysis/`:
 
 - `export_results.py` collects the raw outputs into per-seed summaries in `results/`.
+- `bootstrap_e2.py` computes block-bootstrap intervals for within-field R² and for differences between methods (`results/e2ci/`).
 - `make_tables.py` writes the LaTeX tables of the paper to `outputs/tables/`.
 - `make_figures.py` writes the figures to `outputs/figures/`.
 
@@ -41,6 +45,8 @@ Field coordinates are sensitive under the dataset's datasheet. The code never us
 python analysis/make_tables.py
 python analysis/make_figures.py
 ```
+
+The example-field figure is the exception, because its input holds yield maps from the dataset; it is produced only by a full run.
 
 ## Full run
 
@@ -79,7 +85,7 @@ If you use this code, please cite the paper (reference to be added on publicatio
 ```bibtex
 @inproceedings{miranda2026yieldsat,
   title     = {{YieldSAT}: A Multimodal Benchmark Dataset for High-Resolution Crop Yield Prediction},
-  author    = {Miranda, Miro and Pathak, Deepak},
+  author    = {Miranda, Miro and Pathak, Deepak and Helber, Patrick and Bischke, Benjamin and Najjar, Hiba and Mena, Francisco and Sanchez, Cristhian and Pai, Akshay and Arenas, Diego and Valdenegro-Toro, Matias and Charfuelan, Marcela and Nuske, Marlon and Dengel, Andreas},
   booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
   pages     = {22920--22930},
   year      = {2026}
